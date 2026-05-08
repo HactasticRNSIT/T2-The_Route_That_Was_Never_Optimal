@@ -360,8 +360,16 @@ function AdminPage({ reports, verifyReport, notify }) {
 
   const login = e => {
     e.preventDefault();
-    if (user === "admin" && pass === "admin123") { setLoggedIn(true); notify("✓ Admin login successful!", "success"); }
-    else { setError("Invalid username or password"); notify("✗ Login failed", "error"); }
+    if (user === "admin" && pass === "admin123") {
+      notify("✓ Admin login successful! Redirecting to BioRoute...", "success");
+      setTimeout(() => {
+        window.location.href = "/bioroute/index.html";
+      }, 1000);
+    }
+    else {
+      setError("Invalid username or password");
+      notify("✗ Login failed", "error");
+    }
   };
   const logout = () => { setLoggedIn(false); setUser(""); setPass(""); notify("✓ Logged out", "success"); };
 

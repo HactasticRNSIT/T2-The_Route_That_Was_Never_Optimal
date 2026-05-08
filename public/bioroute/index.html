@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="BioRoute — Slime Mold Garbage Collection Optimizer for Bangalore">
+  <title>BioRoute — Smart Waste Management</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-brand">
+      <span class="logo">🧫</span>
+      <div>
+        <h1>BioRoute</h1>
+        <div class="subtitle">Slime Mold Garbage Collection Optimizer · Bangalore</div>
+      </div>
+    </div>
+    <div class="header-status">
+      <div class="status-badge"><span class="status-dot"></span> API Connected</div>
+    </div>
+  </header>
+
+  <!-- NAV -->
+  <nav class="nav-tabs">
+    <button class="nav-tab active" data-tab="dashboard" id="nav-dashboard">📊 Dashboard</button>
+    <button class="nav-tab" data-tab="reports" id="nav-reports">📋 Citizen Reports</button>
+    <button class="nav-tab" data-tab="report-form" id="nav-report-form">📝 Submit Report</button>
+    <button class="nav-tab" data-tab="routes" id="nav-routes">🗺️ Route Plan</button>
+    <button class="nav-tab" data-tab="priority" id="nav-priority">⚡ Priority Calculator</button>
+    <button class="nav-tab" data-tab="trucks" id="nav-trucks">🚛 Trucks</button>
+  </nav>
+
+  <!-- TOAST CONTAINER -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- ═══ DASHBOARD TAB ═══ -->
+  <div class="tab-content active" id="tab-dashboard">
+    <div class="main-content">
+      <!-- LEFT PANEL -->
+      <div class="panel-left">
+        <div class="kpi-grid" id="kpi-grid"></div>
+        <div class="section-title">Active Hotspots</div>
+        <div id="hotspot-list"></div>
+      </div>
+      <!-- CENTER: MAP -->
+      <div class="panel-center">
+        <div id="map"></div>
+        <div class="map-overlay">
+          <button class="map-toggle active" id="toggle-hotspots" onclick="toggleLayer('hotspots')">🔴 Hotspots</button>
+          <button class="map-toggle active" id="toggle-trucks" onclick="toggleLayer('trucks')">🚛 Trucks</button>
+          <button class="map-toggle" id="toggle-static-route" onclick="toggleLayer('staticRoute')">⚫ Static Route</button>
+          <button class="map-toggle active" id="toggle-opt-route" onclick="toggleLayer('optRoute')">🔵 Optimized Route</button>
+        </div>
+      </div>
+      <!-- RIGHT PANEL -->
+      <div class="panel-right">
+        <div class="section-title">Route Savings</div>
+        <div id="savings-panel"></div>
+        <div class="section-title" style="margin-top:16px">Daily Trend</div>
+        <div id="daily-chart"></div>
+        <div class="section-title" style="margin-top:16px">Top Areas</div>
+        <div id="top-areas"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ REPORTS TAB ═══ -->
+  <div class="tab-content" id="tab-reports">
+    <div class="full-page">
+      <h2 style="margin-bottom:16px">Citizen Report Verification Queue</h2>
+      <div style="display:flex;gap:8px;margin-bottom:16px" id="report-filters">
+        <button class="btn btn-sm btn-secondary active" onclick="filterReports('all')">All</button>
+        <button class="btn btn-sm btn-secondary" onclick="filterReports('pending')">⏳ Pending</button>
+        <button class="btn btn-sm btn-secondary" onclick="filterReports('verified')">✅ Verified</button>
+        <button class="btn btn-sm btn-secondary" onclick="filterReports('rejected')">❌ Rejected</button>
+      </div>
+      <table class="data-table">
+        <thead><tr><th>ID</th><th>Area</th><th>Category</th><th>Severity</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+        <tbody id="reports-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══ SUBMIT REPORT TAB ═══ -->
+  <div class="tab-content" id="tab-report-form">
+    <div class="full-page" style="max-width:600px">
+      <h2 style="margin-bottom:4px">🗑️ Report Waste</h2>
+      <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px">Help keep Bangalore clean by reporting waste hotspots</p>
+      <form id="citizen-report-form">
+        <div class="form-group"><label class="form-label">Your Name (Optional)</label><input class="form-input" name="citizenName" placeholder="e.g. Meena Krishnan"></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Latitude *</label><input class="form-input" name="latitude" type="number" step="any" required placeholder="12.9352"></div>
+          <div class="form-group"><label class="form-label">Longitude *</label><input class="form-input" name="longitude" type="number" step="any" required placeholder="77.6245"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Address</label><input class="form-input" name="address" placeholder="e.g. Residency Rd, Koramangala"></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Area</label><input class="form-input" name="area" placeholder="e.g. Koramangala"></div>
+          <div class="form-group"><label class="form-label">Landmark</label><input class="form-input" name="landmark" placeholder="Near More Supermarket"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Waste Category *</label>
+            <select class="form-select" name="wasteCategory" required>
+              <option value="mixed_waste">Mixed Waste</option>
+              <option value="organic_black_spot">Organic / Black Spot</option>
+              <option value="hospital_biomedical">Hospital / Biomedical</option>
+              <option value="chemical_industrial">Chemical / Industrial</option>
+              <option value="plastic_dry">Plastic / Dry</option>
+              <option value="e_waste">E-Waste</option>
+              <option value="large_debris">Large Debris</option>
+              <option value="regular_waste">Regular Waste</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Severity *</label>
+            <select class="form-select" name="severity" required>
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+              <option value="critical">Critical</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea" name="description" placeholder="Describe the waste issue..."></textarea></div>
+        <button type="button" class="btn btn-secondary btn-block" onclick="getGeolocation()" style="margin-bottom:12px">📍 Use My Location</button>
+        <button type="submit" class="btn btn-primary btn-block">Submit Report</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ═══ ROUTE PLAN TAB ═══ -->
+  <div class="tab-content" id="tab-routes">
+    <div class="full-page">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <h2>🗺️ Tomorrow's Route Plan</h2>
+        <button class="btn btn-primary" id="btn-optimize" onclick="triggerOptimization()">⚡ Run Optimization</button>
+      </div>
+      <div id="route-plan-content"><div class="spinner"></div></div>
+    </div>
+  </div>
+
+  <!-- ═══ PRIORITY TAB ═══ -->
+  <div class="tab-content" id="tab-priority">
+    <div class="full-page" style="max-width:600px">
+      <h2 style="margin-bottom:4px">⚡ Priority Score Calculator</h2>
+      <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px">Calculate waste hotspot priority using the BioRoute formula</p>
+      <form id="priority-form">
+        <div class="form-group"><label class="form-label">Waste Type *</label>
+          <select class="form-select" name="wasteType" required>
+            <option value="hospital_biomedical">Hospital / Biomedical (100)</option>
+            <option value="chemical_industrial">Chemical / Industrial (85)</option>
+            <option value="e_waste">E-Waste (75)</option>
+            <option value="organic_black_spot">Organic / Black Spot (70)</option>
+            <option value="large_debris">Large Debris (55)</option>
+            <option value="mixed_waste" selected>Mixed Waste (50)</option>
+            <option value="plastic_dry">Plastic / Dry (45)</option>
+            <option value="regular_waste">Regular Waste (40)</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Fill Level %</label><input class="form-input" name="fillLevelPercent" type="number" value="80" min="0" max="100"></div>
+          <div class="form-group"><label class="form-label">Hours Overflow</label><input class="form-input" name="hoursOverflow" type="number" value="12" min="0"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Population Density</label>
+            <select class="form-select" name="populationDensity"><option value="low">Low</option><option value="medium">Medium</option><option value="high" selected>High</option><option value="very_high">Very High</option></select>
+          </div>
+          <div class="form-group"><label class="form-label">Citizen Severity</label>
+            <select class="form-select" name="citizenSeverity"><option value="low">Low</option><option value="medium">Medium</option><option value="high" selected>High</option><option value="critical">Critical</option></select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Toxicity Level</label>
+            <select class="form-select" name="toxicityLevel"><option value="low">Low</option><option value="moderate">Moderate</option><option value="high">High</option><option value="critical" selected>Critical</option></select>
+          </div>
+          <div class="form-group"><label class="form-label">Monsoon Season</label>
+            <select class="form-select" name="isMonsoonSeason"><option value="false" selected>No</option><option value="true">Yes</option></select>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Calculate Priority</button>
+      </form>
+      <div id="priority-result"></div>
+    </div>
+  </div>
+
+  <!-- ═══ TRUCKS TAB ═══ -->
+  <div class="tab-content" id="tab-trucks">
+    <div class="full-page">
+      <h2 style="margin-bottom:20px">🚛 Fleet Management</h2>
+      <div id="trucks-list"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
