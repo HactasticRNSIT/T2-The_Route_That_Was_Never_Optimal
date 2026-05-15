@@ -1,0 +1,35 @@
+BioRoute AI - Google Gemini Version
+
+1. Open terminal in backend folder:
+   cd BioRoute_FINAL_Hotspot_Penalty/backend
+
+2. Install dependencies:
+   npm install
+
+3. Create backend/.env:
+   Copy .env.example and rename the copy to .env
+
+4. Add your Google Gemini API key in backend/.env:
+   GOOGLE_API_KEY=your_google_api_key_here
+   GEMINI_VISION_MODEL=gemini-1.5-flash
+   USE_OSRM=true
+   OSRM_BASE_URL=https://router.project-osrm.org
+
+5. Start:
+   npm start
+
+6. Open browser:
+   http://localhost:3000
+
+Login:
+   admin / admin
+   user / user
+
+Phone camera testing:
+- Use ngrok for HTTPS:
+  ngrok http 3000
+- Open the ngrok HTTPS URL on your phone.
+
+Google API warning:
+- Your key must allow Generative Language API / Gemini API.
+- If key is restricted to Cloud Vision API only, change restriction to Generative Language API or None for testing.

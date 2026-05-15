@@ -1,0 +1,35 @@
+Route Fix Notes
+===============
+
+This build changes the optimization/simulation behavior requested:
+
+1. Fleet reduced to exactly 4 trucks:
+   - Truck 001: Indiranagar + Ejipura + Koramangala
+   - Truck 002: BTM Layout + HSR Layout
+   - Truck 003: Bellandur + Electronic City
+   - Truck 004: Peenya Industrial
+
+2. No overlap logic:
+   - Every hotspot is assigned to exactly one truck based on its area.
+   - The same hotspot is not duplicated across multiple truck routes.
+
+3. Real road-following route logic:
+   - Backend now uses OSRM road-routing by default.
+   - Optimized route geometry is generated as depot -> hotspot stops -> processing facility -> depot.
+   - The truck simulation now follows the route polyline coordinates instead of simple dot-to-dot hotspot connectors.
+
+4. Fallback:
+   - If the laptop has no internet or OSRM is blocked, the app falls back to an offline demo polyline.
+   - For the best road-following result, keep internet ON when clicking Run Optimization.
+   - You can force offline mode only if needed by running: USE_OSRM=false npm start
+
+Run:
+cd backend
+npm install
+npm start
+
+Open:
+http://localhost:3000
+
+Login as:
+admin
